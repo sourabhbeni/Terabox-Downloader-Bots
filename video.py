@@ -6,7 +6,6 @@ import asyncio
 import os, time
 import logging
 
-
 aria2 = aria2p.API(
     aria2p.Client(
         host="http://localhost",
@@ -21,12 +20,21 @@ async def download_video(url, reply_msg, user_mention, user_id):
 
     resolutions = data["response"][0]["resolutions"]
     fast_download_link = resolutions["Fast Download"]
+    hd_video_link = resolutions["HD Video"]
     thumbnail_url = data["response"][0]["thumbnail"]
     video_title = data["response"][0]["title"]
-
     download = aria2.add_uris([fast_download_link])
+    
+    x = requests.get(f"http://tinyurl.com/api-create.php?url={fast_download_link}" )
+    shortenedFastDownloadLink = x.text
+    y = requests.get(f"http://tinyurl.com/api-create.php?url={hd_video_link}")
+    shortenedHdVideoLink = y.text
     start_time = datetime.now()
-
+    fast_button = InlineKeyboardButton('⚡️ 𝗙𝗔𝗦𝗧 𝗗𝗢𝗪𝗡𝗟𝗔𝗢𝗗', url = shortenedFastDownloadLink )
+    hd_button = InlineKeyboardButton( '🩵 𝗛𝗗 𝗩𝗜𝗗𝗘𝗢', url = shortenedHdVideoLink ) 
+    reply_markup = InlineKeyboardMarkup([[fast_button, hd_button]])
+    await message.reply_text(reply_message, reply_markup=reply_markup)
+        
     while not download.is_complete:
         download.update()
         percentage = download.progress
